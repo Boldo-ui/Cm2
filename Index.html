@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador de cm2</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 90%; /* Cambiar a 90% para pantallas pequeñas */
+            max-width: 400px; /* Mantener un ancho máximo */
+            text-align: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        input[type="number"], button {
+            width: 100%; /* Cambiar a 100% para que ocupen todo el ancho */
+            padding: 10px;
+            margin: 10px 0; /* Cambiar el margen para mejorar el espaciado */
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+        .dark-mode {
+            background-color: #333;
+            color: #f4f4f9;
+        }
+        .dark-mode .container {
+            background-color: #444;
+            color: #f4f4f9;
+        }
+        .dark-mode button {
+            background-color: #666;
+        }
+        .dark-mode button:hover {
+            background-color: #555;
+        }
+        .dark-mode .delete-btn {
+            background-color: #d32f2f;
+        }
+        .dark-mode .delete-btn:hover {
+            background-color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Cotizador de Area en cm2</h2>
+        <div class="item">
+            <input type="number" id="ancho" placeholder="Ancho (cm)" min="0" step="0.01" onkeypress="checkEnter(event)">
+            <input type="number" id="alto" placeholder="Alto (cm)" min="0" step="0.01" onkeypress="checkEnter(event)">
+        </div>
+        <button onclick="agregarMedida()">Agregar Medida</button>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Ancho (cm)</th>
+                    <th>Alto (cm)</th>
+                    <th>Subtotal (cm2)</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaMedidas">
+                <!-- Las filas se agregarán aquí -->
+            </tbody>
+        </table>
+
+        <div class="result" id="totalArea">Area total: 0 cm2</div>
+        <div class="result" id="totalCosto">Costo total: $0.00</div>
+        <div>
+            <input type="number" id="precio" placeholder="Precio por cm2" min="0" step="0.01" oninput="calcularCosto()">
+        </div>
+        <button onclick="toggleDarkMode()">Cambiar a Modo Oscuro</button>
+    </div>
+
+    <script>
+        let totalArea = 0;
+
+        function agregarMedida() {
+            const ancho = parseFloat(document.getElementById('ancho').value);
+            const alto = parseFloat(document.getElementById('alto').value);
+
+            if (!isNaN(ancho) && !isNaN(alto) && ancho > 0 && alto > 0) {
+                const area = ancho * alto;
+                totalArea += area;
+
+                // Agregar una nueva fila a la tabla
+                const tabla = document.getElementById('tablaMedidas');
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${ancho.toFixed(2)}</td>
+                    <td>${alto.toFixed(2)}</td>
+                    <td>${area.toFixed(2)}</td>
+                    <td><button class="delete-btn" onclick="eliminarMedida(this, ${area})">Eliminar</button></td>
+                `;
+                tabla.appendChild(fila);
+
+                // Actualizar el área total en pantalla
+                document.getElementById('totalArea').textContent = `Area total: ${totalArea.toFixed(2)} cm²`;
+
+                // Calcular costo si hay un precio
+                calcularCosto();
+
+                // Limpiar los campos de entrada
+                document.getElementById('ancho').value = '';
+                document.getElementById('alto').value = '';
+            } else {
+                alert('Por favor ingresa valores válidos para el ancho y alto.');
+            }
+        }
+
+        function eliminarMedida(button, area) {
+            // Restar el área del total
+            totalArea -= area;
+
+            // Eliminar la fila de la tabla
+            const fila = button.parentNode.parentNode;
+            fila.parentNode.removeChild(fila);
+
+            // Actualizar el área total en pantalla
+            document.getElementById('totalArea').textContent = `Area total: ${totalArea.toFixed(2)} cm2`;
+
+            // Calcular costo si hay un precio
+            calcularCosto();
+        }
+
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                agregarMedida();
+            }
+        }
+
+        function calcularCosto() {
+            const precio = parseFloat(document.getElementById('precio').value);
+            const costoTotal = !isNaN(precio) ? totalArea * precio : 0;
+            document.getElementById('totalCosto').textContent = `Costo total: $${costoTotal.toFixed(2)}`;
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+    </script>
+</body>
+</html>
